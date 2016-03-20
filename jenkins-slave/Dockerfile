@@ -17,7 +17,8 @@ RUN apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:webupd8team/java && \
     apt-get -y update && \
     echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-    apt-get -y -q install oracle-java8-installer
+    apt-get -y -q install oracle-java8-installer && \
+    apt-get -y install git
 
 RUN rm -rf /var/lib/apt/lists/*
 
