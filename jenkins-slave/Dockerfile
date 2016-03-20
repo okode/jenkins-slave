@@ -22,11 +22,11 @@ RUN apt-get install -y software-properties-common && \
 RUN rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /jenkins/agent
-RUN mkdir -p /jenkins/data
+RUN mkdir -p /jenkins/workspace
 
 COPY resources/slave.jar /jenkins/agent/
 
-VOLUME /jenkins/data
+VOLUME /jenkins/workspace
 
 ENV JENKINS_JNLP_URL jenkinsJnlpUrlValue
 ENV JENKINS_SECRET jenkinsSecretValue
