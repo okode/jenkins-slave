@@ -1,4 +1,4 @@
-# Docker Jenkins Slave Image for JDK6 builds
+# Docker Jenkins Slave Image for JDK7 builds
 
 FROM ubuntu:latest
 
@@ -16,8 +16,8 @@ RUN apt-get -y update
 RUN apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:webupd8team/java && \
     apt-get -y update && \
-    echo oracle-java6-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-    apt-get -y -q install oracle-java6-installer && \
+    echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+    apt-get -y -q install oracle-java7-installer && \
     apt-get -y install git
 
 RUN rm -rf /var/lib/apt/lists/*
