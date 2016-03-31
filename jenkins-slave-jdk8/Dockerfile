@@ -22,6 +22,12 @@ RUN apt-get install -y software-properties-common && \
 
 RUN rm -rf /var/lib/apt/lists/*
 
+ADD http://www-us.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz /opt/
+RUN cd /opt && tar xf apache-maven-3.3.9-bin.tar.gz && rm apache-maven-3.3.9-bin.tar.gz && \
+    ln -s /opt/apache-maven-3.3.9/bin/mvn /usr/local/bin/ && \
+    ln -s /opt/apache-maven-3.3.9/bin/mvnDebug /usr/local/bin/ && \
+    ln -s /opt/apache-maven-3.3.9/bin/mvnyjp /usr/local/bin/
+
 RUN mkdir -p /jenkins/agent
 RUN mkdir -p /jenkins/workspace
 
