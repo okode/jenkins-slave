@@ -37,6 +37,14 @@ Generate Xcode workspace processing Cocoapods dependencies:
 
     $ pod install
 
+Set the following signing configuration:
+
+    Code Signing Identity > Debug: iOS Developer
+                          > Release: iPhone Distribution
+    
+    Provisioning Profile  > Debug: Automatic
+                          > Release: Okode Enterprise Provisioning
+
 Open the generated workspace and ensure your iOS project is configured
 for generating DWARF with dSYM File for all configurations.
 
