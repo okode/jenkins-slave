@@ -40,6 +40,8 @@ Generate Xcode workspace processing Cocoapods dependencies:
 Open the generated workspace and ensure your iOS project is configured
 for generating DWARF with dSYM File for all configurations.
 
+Generate a shared scheme and add that scheme to SCM.
+
 Add a custom build phase for Run Script:
 
     "${PODS_ROOT}/Fabric/run" <Crashlytics API Key> <Crashlytics Build Secret>
