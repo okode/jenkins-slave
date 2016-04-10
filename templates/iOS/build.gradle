@@ -31,14 +31,16 @@ task debug(dependsOn: ['test', 'oclint', 'coverage']) {
 task release(dependsOn: ['archive', 'package']) {
     description = 'Builds the app for device'
     xcodebuild {
-        simulator = false
+        simulator     = false
+        configuration = 'Release'
     }
 }
 
 task beta(dependsOn: ['archive', 'package', 'crashlytics']) {
     description = 'Builds the app for app for device and uploads to Crashlytics Beta'
     xcodebuild {
-        simulator = false
+        simulator     = false
+        configuration = 'Release'
     }
 }
 
