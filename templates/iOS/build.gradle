@@ -20,8 +20,8 @@ oclint {
 crashlytics {
     apiKey        = CRASHLYTICS_API_KEY
     buildSecret   = CRASHLYTICS_BUILD_SECRET
+    emails        = Eval.me(CRASHLYTICS_EMAILS)
     submitCommand = 'Pods/Crashlytics/submit'
-    emails = ['developers@okode.com']
 }
 
 task debug(dependsOn: ['test', 'oclint', 'coverage']) {
