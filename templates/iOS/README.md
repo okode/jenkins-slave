@@ -23,7 +23,22 @@ Add the following files to the SCM:
 * gradlew.bat
 * gradle folder (including .jar and .properties)
 
-Ensure your iOS project is configured for generating DWARF with dSYM File for all configurations
+Ignore the following files adding them to your .gitignore:
+
+    xcuserdata
+    *.xcworkspace
+    Pods
+    Podfile.lock
+    .gradle
+    build
+    compile_commands.json
+
+Generate Xcode workspace processing Cocoapods dependencies:
+
+    $ pod install
+
+Open the generated workspace and ensure your iOS project is configured
+for generating DWARF with dSYM File for all configurations.
 
 Add a custom build phase for Run Script:
 
