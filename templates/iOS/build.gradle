@@ -13,6 +13,10 @@ infoplist {
     version = BUILD_NUMBER
 }
 
+oclint {
+    excludes = [ 'Pods' ]
+}
+
 crashlytics {
     apiKey        = CRASHLYTICS_API_KEY
     buildSecret   = CRASHLYTICS_BUILD_SECRET
