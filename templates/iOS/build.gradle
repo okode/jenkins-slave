@@ -1,0 +1,42 @@
+plugins {
+    id 'org.openbakery.xcode-plugin' version '0.13.0'
+}
+
+xcodebuild {
+    version     = XCODE_VERSION
+    scheme      = TARGET_NAME
+    target      = TARGET_NAME
+    destination = 'iPhone 6'
+}
+
+infoplist {
+    version = BUILD_NUMBER
+}
+
+crashlytics {
+    apiKey        = CRASHLYTICS_API_KEY
+    buildSecret   = CRASHLYTICS_BUILD_SECRET
+    submitCommand = 'Pods/Crashlytics/submit'
+}
+
+task debug(dependsOn: ['test', 'oclint', 'coverage']) {
+    description = 'Builds the app for simulator and runs unit tests'
+}
+
+task release(dependsOn: ['archive', 'package']) {
+    description = 'Builds the app for device'
+    xcodebuild {
+        simulator = false
+    }
+}
+
+task beta(dependsOn: ['archive', 'package', 'crashlytics']) {
+    description = 'Builds the app for app for device and uploads to Crashlytics Beta'
+    xcodebuild {
+        simulator = false
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
+}
