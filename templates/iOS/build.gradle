@@ -24,8 +24,8 @@ crashlytics {
     submitCommand = 'Pods/Crashlytics/submit'
 }
 
-task debug(dependsOn: ['test', 'oclint', 'coverage']) {
-    description = 'Builds the app for simulator and runs unit tests'
+task debug(dependsOn: ['xcodebuild']) {
+    description = 'Builds the app for simulator'
 }
 
 task release(dependsOn: ['archive', 'package']) {
