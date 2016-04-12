@@ -51,7 +51,6 @@ Customize the following required properties in gradle.properties:
 
     TARGET_NAME
     CRASHLYTICS_API_KEY
-    CRASHLYTICS_BUILD_SECRET
 
 Run the following command (you will need Gradle installed in your system):
 
