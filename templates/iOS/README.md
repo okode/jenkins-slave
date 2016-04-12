@@ -1,3 +1,37 @@
+Requirements
+============
+
+Environment variables
+---------------------
+
+Create the following environment variables
+
+    OKODE_CRASHLYTICS_BUILD_SECRET
+
+For that, create a new file /Library/LaunchDaemons/setenv.OKODE_CRASHLYTICS_BUILD_SECRET.plist:
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+      <key>Label</key>
+      <string>setenv.OKODE_CRASHLYTICS_BUILD_SECRET</string>
+      <key>ProgramArguments</key>
+      <array>
+        <string>/bin/launchctl</string>
+        <string>setenv</string>
+        <string>OKODE_CRASHLYTICS_BUILD_SECRET</string>
+        <string>*** PUT HERE YOUR CRASHLYTICS BUILD SECRET ***</string>
+      </array>
+      <key>RunAtLoad</key>
+      <true/>
+      <key>ServiceIPC</key>
+      <false/>
+    </dict>
+    </plist>
+
+Reboot to apply changes.
+
 Gradle iOS template
 ===================
 
