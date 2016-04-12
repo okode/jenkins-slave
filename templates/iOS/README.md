@@ -90,9 +90,9 @@ for generating DWARF with dSYM File for all configurations.
 
 Generate a shared scheme and add that scheme to SCM.
 
-Add a custom build phase for Run Script:
+Add a custom build phase for Run Script (replace the API Key if needed):
 
-    "${PODS_ROOT}/Fabric/run" <Crashlytics API Key> <Crashlytics Build Secret>
+    "${PODS_ROOT}/Fabric/run" 51a920f68611292bc387b86e9ffa20553d095372 ${OKODE_CRASHLYTICS_BUILD_SECRET}
 
 Run the project and follow Fabric App wizard steps. Ensure the App is registered in Crashlytics before
 submitting betas.
