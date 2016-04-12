@@ -8,27 +8,33 @@ Create the following environment variables
 
     OKODE_CRASHLYTICS_BUILD_SECRET
 
-For that, create a new file /Library/LaunchDaemons/setenv.OKODE_CRASHLYTICS_BUILD_SECRET.plist:
+For that, create a new file ~/LaunchAgents/com.okode.environment.plist:
 
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-      <plist version="1.0">
-      <dict>
-      <key>Label</key>
-      <string>setenv.OKODE_CRASHLYTICS_BUILD_SECRET</string>
-      <key>ProgramArguments</key>
-      <array>
-        <string>/bin/launchctl</string>
-        <string>setenv</string>
-        <string>OKODE_CRASHLYTICS_BUILD_SECRET</string>
-        <string>*** PUT HERE YOUR CRASHLYTICS BUILD SECRET ***</string>
-      </array>
-      <key>RunAtLoad</key>
-      <true/>
-      <key>ServiceIPC</key>
-      <false/>
+    <plist version="1.0">
+    <dict>
+        <key>KeepAlive</key>
+        <false/>
+        <key>Label</key>
+        <string>com.okode.environment</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>/bin/sh</string>
+            <string>/etc/environment.rc</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>WatchPaths</key>
+        <array>
+            <string>/etc/environment.rc</string>
+        </array>
     </dict>
     </plist>
+
+And ensure you have the following contents in /etc/environment.rc:
+
+    launchctl setenv OKODE_CRASHLYTICS_BUILD_SECRET [CRASHLYTICS_BUILD_SECRET]
 
 Reboot to apply changes.
 
