@@ -9,6 +9,7 @@ CWD=$(pwd)
 
 MODE=
 PROJECT_NAME=
+BUILD_NUMBER=
 CRASHLYTICS_API_KEY=
 CRASHLYTICS_BUILD_SECRET=
 CRASHLYTICS_EMAILS=
@@ -25,6 +26,7 @@ Options:
   -h  Show this message
   -m  Mode [release | beta]
   -p  Project name
+  -b  Build number (optional)
   -k  Crashlytics API Key
   -s  Crashlytics Build Secret
   -e  Crashlytics emails
@@ -33,6 +35,10 @@ Options:
 
 ipa()
 {
+    rm -rf output
+    if [ $BUILD_NUMBER ]; then
+        agvtool new-version -all "${BUILD_NUMBER}"
+    fi
     /usr/local/bin/pod install
     set -o pipefail && xcrun xcodebuild clean -workspace ${PROJECT_NAME}.xcworkspace -scheme ${PROJECT_NAME} -configuration Release | xcpretty
     set -o pipefail && xcrun xcodebuild archive -workspace ${PROJECT_NAME}.xcworkspace -scheme ${PROJECT_NAME} -configuration Release -archivePath output/${PROJECT_NAME}.xcarchive | xcpretty
@@ -63,7 +69,7 @@ if [ "$#" -lt 1 ]; then
     end
 fi
 
-while getopts "hm:p:k:s:e:" OPTION; do
+while getopts "hm:p:k:s:e:b:" OPTION; do
     case $OPTION in
         h)
             usage
@@ -81,6 +87,9 @@ while getopts "hm:p:k:s:e:" OPTION; do
             ;;
         p)
             PROJECT_NAME=$OPTARG
+            ;;
+        b)
+            BUILD_NUMBER=$OPTARG
             ;;
         k)
             CRASHLYTICS_API_KEY=$OPTARG
