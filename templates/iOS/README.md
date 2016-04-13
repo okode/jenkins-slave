@@ -38,6 +38,17 @@ And ensure you have the following contents in /etc/environment.rc:
 
 Reboot to apply changes.
 
+Dependencies
+------------
+
+Cocoapods
+
+    $ sudo gem install cocoapods
+
+xcpretty
+
+    $ sudo gem install xcpretty
+
 Gradle iOS template
 ===================
 
