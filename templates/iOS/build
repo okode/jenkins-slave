@@ -37,7 +37,7 @@ ipa()
 {
     rm -rf output
     if [ $BUILD_NUMBER ]; then
-        agvtool new-version -all "${BUILD_NUMBER}"
+        agvtool new-version -all ${BUILD_NUMBER}
     fi
     /usr/local/bin/pod install
     set -o pipefail && xcrun xcodebuild clean -workspace ${PROJECT_NAME}.xcworkspace -scheme ${PROJECT_NAME} -configuration Release | xcpretty

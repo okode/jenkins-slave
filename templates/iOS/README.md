@@ -61,7 +61,7 @@ In Jenkins add a custom build phase (shell):
 
     #!/bin/bash
     cd <Put here your directory where the project is stored>
-    ./build -m ${goal} -p QRAuth -k 51a920f68611292bc387b86e9ffa20553d095372 -s ${OKODE_CRASHLYTICS_BUILD_SECRET} -e developers@okode.com
+    ./build -m ${goal} -p QRAuth -b ${BUILD_NUMBER} -k 51a920f68611292bc387b86e9ffa20553d095372 -s ${OKODE_CRASHLYTICS_BUILD_SECRET} -e developers@okode.com
 
 
 Ignore the following files adding them to your .gitignore:
