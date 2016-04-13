@@ -57,12 +57,16 @@ Add the following files to your iOS project and to the SCM:
 * build
 * exportPlist.plist
 
+In Jenkins check "Use secret text(s) or file(s)" and create the following variable:
+
+    OKODE_CRASHLYTICS_BUILD_SECRET
+
 In Jenkins add a custom build phase (shell):
 
     #!/bin/bash
-    cd <Put here your directory where the project is stored>
-    ./build -m ${goal} -p QRAuth -b ${BUILD_NUMBER} -k 51a920f68611292bc387b86e9ffa20553d095372 -s ${OKODE_CRASHLYTICS_BUILD_SECRET} -e developers@okode.com
-
+    cd app && ./build -m ${goal} -p QRAuth -b ${BUILD_NUMBER} \
+    -k 51a920f68611292bc387b86e9ffa20553d095372 -s ${OKODE_CRASHLYTICS_BUILD_SECRET} \
+    -e developers@okode.com
 
 Ignore the following files adding them to your .gitignore:
 
