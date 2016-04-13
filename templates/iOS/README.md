@@ -49,29 +49,20 @@ xcpretty
 
     $ sudo gem install xcpretty
 
-Gradle iOS template
+Build iOS template
 ===================
 
 Add the following files to your iOS project and to the SCM:
 
-* Podfile
-* build.gradle
-* gradle.properties
+* build
+* exportPlist.plist
 
-Customize the following required properties in gradle.properties:
+In Jenkins add a custom build phase (shell):
 
-    TARGET_NAME
-    CRASHLYTICS_API_KEY
+    #!/bin/bash
+    cd <Put here your directory where the project is stored>
+    ./build -m ${goal} -p QRAuth -k 51a920f68611292bc387b86e9ffa20553d095372 -s ${OKODE_CRASHLYTICS_BUILD_SECRET} -e developers@okode.com
 
-Run the following command (you will need Gradle installed in your system):
-
-    $ gradle wrapper
-
-Add the following files to the SCM:
-
-* gradlew
-* gradlew.bat
-* gradle folder (including .jar and .properties)
 
 Ignore the following files adding them to your .gitignore:
 
@@ -79,9 +70,7 @@ Ignore the following files adding them to your .gitignore:
     *.xcworkspace
     Pods
     Podfile.lock
-    .gradle
-    build
-    compile_commands.json
+    output
 
 Generate Xcode workspace processing Cocoapods dependencies:
 
