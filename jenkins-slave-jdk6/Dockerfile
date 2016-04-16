@@ -9,7 +9,11 @@ RUN apt-get -y update && \
     apt-get -y -q install oracle-java6-installer && \
     apt-get -y -q install oracle-java6-set-default
 
+# Needed for Gradle when using sourceCompatibility = "1.6"
+ENV JDK6_HOME=/usr/lib/jvm/java-6-oracle
+
 # Use JDK8 *only* for running Jenkins agent. JDK6 remains as default Java for other processes.
 CMD /usr/lib/jvm/java-8-oracle/jre/bin/java -jar /jenkins/agent/slave.jar \
     -jnlpUrl ${JENKINS_JNLP_URL} \
     -secret ${JENKINS_SECRET}
+
