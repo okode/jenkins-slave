@@ -22,11 +22,11 @@ RUN apt-get install -y software-properties-common && \
 
 RUN rm -rf /var/lib/apt/lists/*
 
-ADD https://archive.apache.org/dist/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz /opt/
-RUN cd /opt && tar xf apache-maven-3.2.5-bin.tar.gz && rm apache-maven-3.2.5-bin.tar.gz && \
-    ln -s /opt/apache-maven-3.2.5/bin/mvn /usr/local/bin/ && \
-    ln -s /opt/apache-maven-3.2.5/bin/mvnDebug /usr/local/bin/ && \
-    ln -s /opt/apache-maven-3.2.5/bin/mvnyjp /usr/local/bin/
+ADD https://archive.apache.org/dist/maven/binaries/apache-maven-3.0.5-bin.tar.gz /opt/
+RUN cd /opt && tar xf apache-maven-3.0.5-bin.tar.gz && rm apache-maven-3.0.5-bin.tar.gz && \
+    ln -s /opt/apache-maven-3.0.5/bin/mvn /usr/local/bin/ && \
+    ln -s /opt/apache-maven-3.0.5/bin/mvnDebug /usr/local/bin/ && \
+    ln -s /opt/apache-maven-3.0.5/bin/mvnyjp /usr/local/bin/
 
 RUN mkdir -p /jenkins/agent
 RUN mkdir -p /jenkins/workspace
