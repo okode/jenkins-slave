@@ -148,6 +148,26 @@ function build {
     echo ''
 }
 
+function postBuildAndroid {
+    if [[ ${_target_android_phone} == "true" -o  ${_target_android_tablet} == "true" ]]; then
+        set +x
+        echo "## Execute Android signing APK - Start ##"
+        cd binaries/android
+
+        if [[ ! -z ${_android_storepass} && ${_android_storepass} != "" &&
+            ! -z ${_android_keyalias} && ${_android_keyalias} != "" &&
+            ! -z ${_android_keypass} && ${_android_keypass} != "" &&
+            ! -z ${_android_keystore} && ${_android_keystore} != "" && ]]; then
+
+                jarsigner -storepass "${_android_storepass}" -keypass "${_android_keypass}" -keystore ../../${_android_keystore} luavmandroid.apk ${_android_keyalias} -signedjar luavmandroid-signed_unaligned.apk
+                ${_android_zipalign} -v 4 luavmandroid-signed_unaligned.apk luavmandroid-signed.apk
+        fi
+        cd -
+        echo "## Execute Android signing APK - Done ##"
+        echo ''
+    fi
+
+}
 
 loadDefaultVars $0
 dumpVars
