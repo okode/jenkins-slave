@@ -6,6 +6,16 @@ function loadDefaultVars {
     echo -e "[OK]"
 }
 
+function change_line {
+    local OLD_LINE_PATTERN=$1; shift
+    local NEW_LINE=$1; shift
+    local FILE=$1
+
+    local NEW=$(echo "${NEW_LINE}" | escape_slashes)
+    sed -i .bak '/'"${OLD_LINE_PATTERN}"'/s/.*/'"${NEW}"'/' "${FILE}"
+    mv "${FILE}.bak" /tmp/
+}
+
 function dumpVars {
 
     echo -e "\n\n####### DUMP #######"
@@ -108,11 +118,34 @@ function extractTemplateJAR {
     unzip ${_template_project} -d ${_tmp}/template
     find ${_tmp}/template/* ! -name '*.zip' -type f -exec rm -f {} +
     find ${_tmp}/template/* ! -name '*.zip' -type d -exec rm -fr {} +
-    if [[! -f ${_tmp}/template/iOS-GA-*.zip ]];then
+    if [[ ! -f ${_tmp}/template/iOS-GA*.zip ]];then
         echo -e "[ERROR]: Error getting template zip project."
-        exit 1
+    #    exit 1
     fi
-    _template_project_zip=${_tmp}/template/iOS-GA-*.zip
+    _template_project_zip=${_tmp}/template/iOS-GA.zip
+}
+
+function injectingProperties {
+    echo "# injecting properties"
+
+    change_line "^android=" "android=${_target_android_phone}" ${_workspace}/build.properties
+    change_line "^androidtablet=" "androidtablet=${_target_android_tablet}" ${_workspace}/build.properties
+    change_line "^iphone=" "iphone=${_target_ios_phone}" ${_workspace}/build.properties
+    change_line "^ipad=" "ipad=${_target_ios_tablet}" ${_workspace}/build.properties
+
+    #change_line "^android.home=" "android.home=${_android_sdk}" ${_workspace}/global.properties
+    #change_line "^eclipse.equinox.path=" "eclipse.equinox.path=${_eclipse_equinox}" ${_workspace}/global.properties
+
+    #change_line "^httpport=" "httpport=$_middleware_httpport" middleware.properties
+    #change_line "^httpsport=" "httpsport=$_middleware_httpsport" middleware.properties
+    #change_line "^ipaddress=" "ipaddress=$_middleware_ipaddress" middleware.properties
+}
+function build {
+    echo "## Execute Kony Ant Build - Start ##"
+    export PATH=$PATH:${_ant_bin_dir}
+    ant -file build.xml
+    echo "## Execute Kony Ant Build - Done ##"
+    echo ''
 }
 
 
@@ -121,3 +154,5 @@ dumpVars
 checkVars
 cleanUp
 extractTemplateJAR
+injectingProperties
+build
