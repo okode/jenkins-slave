@@ -1,0 +1,123 @@
+#!/bin/bash
+
+function loadDefaultVars {
+    echo -ne "#> Loading default values..."
+    source $(dirname $1)/vars.cfg
+    echo -e "[OK]"
+}
+
+function dumpVars {
+
+    echo -e "\n\n####### DUMP #######"
+    echo -e "Target:"
+    echo -e "Android phone: ${_target_android_phone}"
+    echo -e "Android tablet: ${_target_android_tablet}"
+    echo -e "iOS phone: ${_target_ios_phone}"
+    echo -e "iOS tablet: ${_target_ios_tablet}"
+    echo -e ""
+    echo -e "Paths:"
+    echo -e "Temporal path: ${_tmp}"
+    echo -e "Workspace path: ${_workspace}"
+    echo -e "Eclipse equinox path: ${_eclipse_equinox}"
+    echo -e "Template project path: ${_template_project}"
+    echo -e "Android SDK path: ${_android_sdk}"
+    echo -e "Zipalign bin path: ${_android_zipalign}"
+    echo -e "Ant bin path: ${_ant_bin}"
+    echo -e ""
+    echo -e "iOS Signing:"
+    echo -e "Identity: ${_ios_code_sign_identity}"
+    echo -e "uuid: ${_ios_provisioning_profile_uuid}"
+    echo -e "name: ${_ios_provisioning_profile_name}"
+    echo -e ""
+    echo -e "Android Signing: "
+    echo -e "Storepass: ${_android_storepass}"
+    echo -e "Keyalias: ${_android_keyalias}"
+    echo -e "Keypass: ${_android_keypass}"
+    echo -e "Keystore: ${_android_keystore}"
+    echo -e "####### END #######\n\n"
+}
+
+function cleanUp {
+    echo -ne "#> Cleaning up temporal folder..."
+    rm -fr ${_tmp} 2>/dev/null
+    mkdir -p ${_tmp}
+    echo -e "[OK]"
+}
+
+function checkVars {
+    if [[ -z ${_tmp} ]];then
+        echo -e "[ERROR]: Path folder is not defined. Use --tmp /path/to/tmp/folder to add it"
+        exit 1
+    fi
+
+    if [[ -z ${_workspace} ]];then
+        echo -e "[ERROR]: Workspace folder is not defined. Use -w|--workspace /path/to/w/folder to add it"
+        exit 1
+    fi
+
+    if [[ -z ${_eclipse_equinox} ]];then
+        echo -e "[ERROR]: Equinox plugin path is not defined. Use --eqiunox /path/to/equinox/jar to add it"
+        exit 1
+    elif [[  ! -f ${_eclipse_equinox} ]]; then
+        echo -e "[ERROR]: Equinox ${_eclipse_equinox} not exists."
+        exit 1
+    fi
+
+    if [[ -z ${_template_project} ]];then
+        echo -e "[ERROR]: Template plugin path is not defined. Use --template /path/to/template/jar to add it"
+        exit 1
+    elif [[  ! -f ${_template_project} ]]; then
+        echo -e "[ERROR]: Template ${_template_project} not exists."
+        exit 1
+    fi
+
+    if [[ -z ${_android_sdk} ]];then
+        echo -e "[ERROR]: Android home  path is not defined. Use --android-sdk /path/to/android/sdk to add it"
+        exit 1
+    elif [[  ! -d ${_android_sdk} ]]; then
+        echo -e "[ERROR]: Android sdk path ${_android_sdk} not exists."
+        exit 1
+    fi
+
+    if [[ -z ${_android_zipalign} ]];then
+        echo -e "[ERROR]: Android zipalign  path is not defined. Use --android-sdk /path/to/zipalign/bin to add it"
+        exit 1
+    elif [[  ! -f ${_android_zipalign} ]]; then
+        echo -e "[ERROR]: zipalign bin path ${_android_zipalign} not exists."
+        exit 1
+    fi
+
+    if [[ -z ${_ant_bin} ]];then
+        echo -e "[ERROR]: Android zipalign  path is not defined. Use --android-sdk /path/to/ant/bin to add it"
+        exit 1
+    elif [[  ! -f ${_ant_bin} ]]; then
+        echo -e "[ERROR]: ant bin path ${_ant_bin} not exists."
+        exit 1
+    fi
+
+    if [[ ${_target_android_phone} == "false" && ${_target_android_tablet} == "false" &&
+        ${_target_ios_phone} == "false" && ${_target_ios_tablet} == "false" ]]; then
+        echo -e "[ERROR]: No target defined."
+        exit 1
+    fi
+}
+
+function extractTemplateJAR {
+    echo -ne "Generating template zip..."
+    mkdir -p ${_tmp}/template
+    unzip ${_template_project} -d ${_tmp}/template
+    find ${_tmp}/template/* ! -name '*.zip' -type f -exec rm -f {} +
+    find ${_tmp}/template/* ! -name '*.zip' -type d -exec rm -fr {} +
+    if [[! -f ${_tmp}/template/iOS-GA-*.zip ]];then
+        echo -e "[ERROR]: Error getting template zip project."
+        exit 1
+    fi
+    _template_project_zip=${_tmp}/template/iOS-GA-*.zip
+}
+
+
+loadDefaultVars $0
+dumpVars
+checkVars
+cleanUp
+extractTemplateJAR
