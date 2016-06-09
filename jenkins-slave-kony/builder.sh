@@ -169,6 +169,50 @@ function postBuildAndroid {
 
 }
 
+function postBuildIOS {
+    #TODO: Refactor this function
+
+    echo "## Execute Kony iOS Workspace creation - Start ##"
+    cd ..
+    echo "# unzipping workspace #"
+    rm -rf VMAppWithKonylib${$1}
+    unzip $_ios_dummy_project_zip -d .
+    mv VMAppWithKonylib VMAppWithKonylib${1}
+    cd VMAppWithKonylib${1}
+    cd gen
+
+    echo "# filling workspace #"
+    perl extract.pl ../../alm/binaries/iphone/konyappiphone.KAR
+    # back to ios Workspace
+    cd ..
+    echo "## Execute Kony iOS iPhone Workspace creation - Done ##"
+
+    # dirty piece of code to create the scheme files... open xcode and close it again :)
+    echo "# opening project to generate scheme"
+    cp $HOME/Applications/exportPlist.plist .
+    cd VMAppWithKonylib.xcodeproj
+    awk '/buildSettings/ { print; print "\t\t\t\tENABLE_BITCODE = NO;"; next }1' project.pbxproj > tmp2
+    mv tmp2 project.pbxproj
+    cd ..
+    open VMAppWithKonylib.xcodeproj
+    sleep ${_sleep_while_xcode_startup}
+    echo "# close project"
+    osascript -e 'quit app "Xcode"'
+    echo -e $(pwd)
+    echo "## Execute Kony iOS Archive - Start ##"
+    # create signed archive
+    #xcodebuild -scheme KRelease -archivePath build/Archive.xcarchive archive PROVISIONING_PROFILE="${_ios_provisioning_profile_uuid}" CODE_SIGN_IDENTITY="${_ios_code_sign_identity}"
+    xcrun xcodebuild -project VMAppWithKonylib.xcodeproj -scheme KRelease -archivePath output/VMAppWithKonylib.xarchive archive | xcpretty
+    echo "## Execute Kony iOS Archive - Done ##"
+
+    echo "## Execute Kony iOS IPA Generation - Start ##"
+    # create ipa
+        #xcodebuild -exportArchive -exportFormat IPA -archivePath build/Archive.xcarchive -exportPath build/KonyiOSApp.ipa -exportProvisioningProfile "${_ios_provisioning_profile_name}"
+    xcrun xcodebuild -exportArchive -archivePath output/VMAppWithKonylib.xarchive.xcarchive -exportPath output/VMAppWithKonylib -exportOptionsPlist exportPlist.plist | xcpretty
+    echo "## Execute Kony iOS IPA Generation - Done ##"
+    echo ''
+}
+
 loadDefaultVars $0
 dumpVars
 checkVars
