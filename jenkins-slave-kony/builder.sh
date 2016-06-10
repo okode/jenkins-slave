@@ -16,6 +16,10 @@ function change_line {
     mv "${FILE}.bak" /tmp/
 }
 
+function escape_slashes {
+    sed 's/\//\\\//g'
+}
+
 function dumpVars {
 
     echo -e "\n\n####### DUMP #######"
@@ -105,6 +109,11 @@ function checkVars {
         exit 1
     fi
 
+    if [[ -z ${_project_name} || ${_project_name} == "" ]];then
+        echo -e "[ERROR]: Project name not defined. Must be defined. Add it on vars.cfg or use --project-name nameOfTheProject"
+        exit 1
+    fi
+
     if [[ ${_target_android_phone} == "false" && ${_target_android_tablet} == "false" &&
         ${_target_ios_phone} == "false" && ${_target_ios_tablet} == "false" ]]; then
         echo -e "[ERROR]: No target defined."
@@ -122,10 +131,11 @@ function extractTemplateJAR {
         echo -e "[ERROR]: Error getting template zip project."
     #    exit 1
     fi
-    _template_project_zip=${_tmp}/template/iOS-GA.zip
+    _template_project_zip=${_tmp}/template/iOS-GA*.zip
 }
 
 function injectingProperties {
+    #TODO: If *.properties files values are already assigned this will fail.
     echo "# injecting properties"
 
     change_line "^android=" "android=${_target_android_phone}" ${_workspace}/build.properties
@@ -133,8 +143,8 @@ function injectingProperties {
     change_line "^iphone=" "iphone=${_target_ios_phone}" ${_workspace}/build.properties
     change_line "^ipad=" "ipad=${_target_ios_tablet}" ${_workspace}/build.properties
 
-    #change_line "^android.home=" "android.home=${_android_sdk}" ${_workspace}/global.properties
-    #change_line "^eclipse.equinox.path=" "eclipse.equinox.path=${_eclipse_equinox}" ${_workspace}/global.properties
+    change_line "^android.home=" "android.home=${_android_sdk}" ${_workspace}/global.properties
+    change_line "^eclipse.equinox.path=" "eclipse.equinox.path=${_eclipse_equinox}" ${_workspace}/global.properties
 
     #change_line "^httpport=" "httpport=$_middleware_httpport" middleware.properties
     #change_line "^httpsport=" "httpsport=$_middleware_httpsport" middleware.properties
@@ -148,69 +158,85 @@ function build {
     echo ''
 }
 
-function postBuildAndroid {
-    if [[ ${_target_android_phone} == "true" -o  ${_target_android_tablet} == "true" ]]; then
-        set +x
-        echo "## Execute Android signing APK - Start ##"
-        cd binaries/android
-
-        if [[ ! -z ${_android_storepass} && ${_android_storepass} != "" &&
-            ! -z ${_android_keyalias} && ${_android_keyalias} != "" &&
-            ! -z ${_android_keypass} && ${_android_keypass} != "" &&
-            ! -z ${_android_keystore} && ${_android_keystore} != "" && ]]; then
-
-                jarsigner -storepass "${_android_storepass}" -keypass "${_android_keypass}" -keystore ../../${_android_keystore} luavmandroid.apk ${_android_keyalias} -signedjar luavmandroid-signed_unaligned.apk
-                ${_android_zipalign} -v 4 luavmandroid-signed_unaligned.apk luavmandroid-signed.apk
-        fi
-        cd -
-        echo "## Execute Android signing APK - Done ##"
-        echo ''
-    fi
-
-}
+#function postBuildAndroid {
+#    if [[ ${_target_android_phone} == "true" -o  ${_target_android_tablet} == "true" ]]; then
+#        set +x
+#        echo "## Execute Android signing APK - Start ##"
+#        cd binaries/android
+#
+#        if [[ ! -z ${_android_storepass} && ${_android_storepass} != "" &&
+#            ! -z ${_android_keyalias} && ${_android_keyalias} != "" &&
+#            ! -z ${_android_keypass} && ${_android_keypass} != "" &&
+#            ! -z ${_android_keystore} && ${_android_keystore} != "" && ]]; then
+#
+#                jarsigner -storepass "${_android_storepass}" -keypass "${_android_keypass}" -keystore ../../${_android_keystore} luavmandroid.apk ${_android_keyalias} -signedjar luavmandroid-signed_unaligned.apk
+#                ${_android_zipalign} -v 4 luavmandroid-signed_unaligned.apk luavmandroid-signed.apk
+#        fi
+#        cd -
+#        echo "## Execute Android signing APK - Done ##"
+#        echo ''
+#    fi
+#
+#}
 
 function postBuildIOS {
-    #TODO: Refactor this function
+    function generateIPA {
+        echo "## Execute Kony iOS Workspace creation - Start ##"
+        cd ..
+        echo "# unzipping workspace #"
+        rm -rf VMAppWithKonylib${1}
+        unzip ${_template_project_zip} -d .
+        mv VMAppWithKonylib "VMAppWithKonylib${1}"
+        cd "VMAppWithKonylib${1}"
+        cd gen
+        echo "# filling workspace #"
+        perl extract.pl ../../${_project_name}/binaries/iphone/konyappiphone.KAR
+        # back to ios Workspace
+        cd ..
+        echo "## Execute Kony iOS iPhone Workspace creation - Done ##"
+        #    # dirty piece of code to create the scheme files... open xcode and close it again :)
+        echo "# opening project to generate scheme"
+        cp $HOME/Applications/exportPlist.plist .
+        cd VMAppWithKonylib.xcodeproj
+        awk '/buildSettings/ { print; print "\t\t\t\tENABLE_BITCODE = NO;"; next }1' project.pbxproj > tmp2
+        mv tmp2 project.pbxproj
+        cd ..
+        open VMAppWithKonylib.xcodeproj
+        sleep ${_sleep_while_xcode_startup}
+        echo "# close project"
+        osascript -e 'quit app "Xcode"'
+        echo -e $(pwd)
+        echo "## Execute Kony iOS Archive - Start ##"
+        # create signed archive
+        xcrun xcodebuild -project VMAppWithKonylib.xcodeproj -scheme KRelease -archivePath output/VMAppWithKonylib.xarchive archive | xcpretty
+        echo "## Execute Kony iOS Archive - Done ##"
 
-    echo "## Execute Kony iOS Workspace creation - Start ##"
-    cd ..
-    echo "# unzipping workspace #"
-    rm -rf VMAppWithKonylib${$1}
-    unzip $_ios_dummy_project_zip -d .
-    mv VMAppWithKonylib VMAppWithKonylib${1}
-    cd VMAppWithKonylib${1}
-    cd gen
+        echo "## Execute Kony iOS IPA Generation - Start ##"
+        # create ipa
+        xcrun xcodebuild -exportArchive -archivePath output/VMAppWithKonylib.xarchive.xcarchive -exportPath output/VMAppWithKonylib -exportOptionsPlist exportPlist.plist | xcpretty
+        echo "## Execute Kony iOS IPA Generation - Done ##"
+        echo ''
+    }
 
-    echo "# filling workspace #"
-    perl extract.pl ../../alm/binaries/iphone/konyappiphone.KAR
-    # back to ios Workspace
-    cd ..
-    echo "## Execute Kony iOS iPhone Workspace creation - Done ##"
+    if [[ ${_target_ios_phone} == "true" ]];then
+        generateIPA "phone"
+    fi
+    if [[ ${_target_ios_tablet} == "true" ]];then
+        generateIPA "tablet"
+    fi
 
-    # dirty piece of code to create the scheme files... open xcode and close it again :)
-    echo "# opening project to generate scheme"
-    cp $HOME/Applications/exportPlist.plist .
-    cd VMAppWithKonylib.xcodeproj
-    awk '/buildSettings/ { print; print "\t\t\t\tENABLE_BITCODE = NO;"; next }1' project.pbxproj > tmp2
-    mv tmp2 project.pbxproj
-    cd ..
-    open VMAppWithKonylib.xcodeproj
-    sleep ${_sleep_while_xcode_startup}
-    echo "# close project"
-    osascript -e 'quit app "Xcode"'
-    echo -e $(pwd)
-    echo "## Execute Kony iOS Archive - Start ##"
-    # create signed archive
-    #xcodebuild -scheme KRelease -archivePath build/Archive.xcarchive archive PROVISIONING_PROFILE="${_ios_provisioning_profile_uuid}" CODE_SIGN_IDENTITY="${_ios_code_sign_identity}"
-    xcrun xcodebuild -project VMAppWithKonylib.xcodeproj -scheme KRelease -archivePath output/VMAppWithKonylib.xarchive archive | xcpretty
-    echo "## Execute Kony iOS Archive - Done ##"
-
-    echo "## Execute Kony iOS IPA Generation - Start ##"
-    # create ipa
-        #xcodebuild -exportArchive -exportFormat IPA -archivePath build/Archive.xcarchive -exportPath build/KonyiOSApp.ipa -exportProvisioningProfile "${_ios_provisioning_profile_name}"
-    xcrun xcodebuild -exportArchive -archivePath output/VMAppWithKonylib.xarchive.xcarchive -exportPath output/VMAppWithKonylib -exportOptionsPlist exportPlist.plist | xcpretty
-    echo "## Execute Kony iOS IPA Generation - Done ##"
-    echo ''
+#    #TODO: Refactor this function
+#
+#    echo "## Execute Kony iOS Workspace creation - Start ##"
+#    cd ..
+#    echo "# unzipping workspace #"
+#    rm -rf VMAppWithKonylib${$1}
+#    unzip $_ios_dummy_project_zip -d .
+#    mv VMAppWithKonylib VMAppWithKonylib${1}
+#    cd VMAppWithKonylib${1}
+#    cd gen
+#
+#
 }
 
 loadDefaultVars $0
@@ -220,3 +246,4 @@ cleanUp
 extractTemplateJAR
 injectingProperties
 build
+postBuildIOS
