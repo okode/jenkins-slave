@@ -238,7 +238,7 @@ function parseArguments {
                 shift # past argument
                 ;;
             --android-sdk)
-                ANDROID_SDK="$2"
+                _android_sdk="$2"
                 shift # past argument
                 ;;
             --zipalign)
