@@ -224,22 +224,77 @@ function postBuildIOS {
     if [[ ${_target_ios_tablet} == "true" ]];then
         generateIPA "tablet"
     fi
+}
 
-#    #TODO: Refactor this function
-#
-#    echo "## Execute Kony iOS Workspace creation - Start ##"
-#    cd ..
-#    echo "# unzipping workspace #"
-#    rm -rf VMAppWithKonylib${$1}
-#    unzip $_ios_dummy_project_zip -d .
-#    mv VMAppWithKonylib VMAppWithKonylib${1}
-#    cd VMAppWithKonylib${1}
-#    cd gen
-#
-#
+function parseArguments {
+    while [[ $# > 1 ]]
+    do
+        key="$1"
+
+        case $key in
+            -t|--target)
+                TARGET="$2"
+                setTargets ${TARGET}
+                shift # past argument
+                ;;
+            --android-sdk)
+                ANDROID_SDK="$2"
+                shift # past argument
+                ;;
+            --zipalign)
+                _android_zipalign="$2"
+                shift # past argument
+                ;;
+            --ant)
+                _ant_bin="$2"
+                shift # past argument
+                ;;
+            --workspace)
+                _workspace="$2"
+                shift # past argument
+                ;;
+            --ios-id)
+                _ios_code_sign_identity="$2"
+                shift
+                ;;
+            --ios-uuid)
+                _ios_provisioning_profile_uuid="$2"
+                shift
+                ;;
+            --ios-name)
+                _ios_provisioning_profile_name="$2"
+                shift
+                ;;
+            *)
+                # unknown option
+                ;;
+        esac
+        shift # past argument or value
+    done
+}
+
+function setTargets {
+    case $1 in
+        android)
+            _target_android_phone=true
+            ;;
+        android_tablet)
+            _target_android_tablet=true
+            ;;
+        ios)
+            _target_ios_phone=true
+            ;;
+        ios_tablet)
+            _target_ios_tablet=true
+            ;;
+        *)
+            echo -e "Target ${target} not recognized. Ignored"
+            ;;
+    esac
 }
 
 loadDefaultVars $0
+parseArguments $@
 dumpVars
 checkVars
 cleanUp
