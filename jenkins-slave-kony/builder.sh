@@ -56,6 +56,13 @@ function cleanUp {
     rm -fr ${_tmp} 2>/dev/null
     mkdir -p ${_tmp}
     echo -e "[OK]"
+
+    echo -ne "#> Cleaning temporal properties files"
+
+    rm -fr ${_workspace}/.build.properties.bak
+    rm -fr ${_workspace}/.global.properties.bak
+
+    echo -e "[OK]"
 }
 
 function checkVars {
