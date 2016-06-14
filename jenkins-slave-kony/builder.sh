@@ -326,5 +326,9 @@ extractTemplateJAR
 backUpFiles
 injectingProperties
 build
-postBuildIOS
+if [[ ${_target_ios_phone} == "true" || ${_target_ios_tablet} == "true" ]]; then
+    postBuildIOS
+elif [[ ${_target_android_phone} == "true" || ${_target_android_tablet} == "true" ]]; then
+    postBuildAndroid #TODO: Tablet and Android phone apk generation will colide. 
+fi
 restoreFiles
