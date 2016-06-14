@@ -6,6 +6,57 @@ function loadDefaultVars {
     echo -e "[OK]"
 }
 
+function parseArguments {
+    while [[ $# > 1 ]]
+    do
+        key="$1"
+
+        case $key in
+            -t|--target)
+                target="$2"
+                setTargets ${target}
+                shift # past argument
+                ;;
+            --android-sdk)
+                _android_sdk="$2"
+                shift # past argument
+                ;;
+            --equinox)
+                _eclipse_equinox="$2"
+                shift
+                ;;
+            --zipalign)
+                _android_zipalign="$2"
+                shift # past argument
+                ;;
+            --ant)
+                _ant_bin="$2"
+                shift # past argument
+                ;;
+            -w|--workspace)
+                _workspace="$2"
+                shift # past argument
+                ;;
+            --template)
+                _template_project="$2"
+                shift
+                ;;
+            --tmp)
+                _tmp="$2"
+                shift
+                ;;
+            --name)
+                _project_name="$2"
+                shift
+                ;;
+            *)
+                # unknown option
+                ;;
+        esac
+        shift # past argument or value
+    done
+}
+
 function change_line {
     local OLD_LINE_PATTERN=$1; shift
     local NEW_LINE=$1; shift
@@ -242,53 +293,6 @@ function postBuildIOS {
     if [[ ${_target_ios_tablet} == "true" ]];then
         generateIPA "tablet"
     fi
-}
-
-function parseArguments {
-    while [[ $# > 1 ]]
-    do
-        key="$1"
-
-        case $key in
-            -t|--target)
-                TARGET="$2"
-                setTargets ${TARGET}
-                shift # past argument
-                ;;
-            --android-sdk)
-                _android_sdk="$2"
-                shift # past argument
-                ;;
-            --zipalign)
-                _android_zipalign="$2"
-                shift # past argument
-                ;;
-            --ant)
-                _ant_bin="$2"
-                shift # past argument
-                ;;
-            --workspace)
-                _workspace="$2"
-                shift # past argument
-                ;;
-            --ios-id)
-                _ios_code_sign_identity="$2"
-                shift
-                ;;
-            --ios-uuid)
-                _ios_provisioning_profile_uuid="$2"
-                shift
-                ;;
-            --ios-name)
-                _ios_provisioning_profile_name="$2"
-                shift
-                ;;
-            *)
-                # unknown option
-                ;;
-        esac
-        shift # past argument or value
-    done
 }
 
 function setTargets {
