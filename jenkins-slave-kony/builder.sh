@@ -134,6 +134,16 @@ function extractTemplateJAR {
     _template_project_zip=${_tmp}/template/iOS-GA*.zip
 }
 
+function backUpFiles {
+    cp ${_workspace}/build.properties ${_workspace}/.build.properties.bak
+    cp ${_workspace}/global.properties ${_workspace}/.global.properties.bak
+}
+
+function restoreFiles {
+    mv ${_workspace}/.build.properties.bak ${_workspace}/build.properties
+    mv ${_workspace}/.global.properties.bak ${_workspace}/global.properties
+}
+
 function injectingProperties {
     #TODO: If *.properties files values are already assigned this will fail.
     echo "# injecting properties"
@@ -150,6 +160,7 @@ function injectingProperties {
     #change_line "^httpsport=" "httpsport=$_middleware_httpsport" middleware.properties
     #change_line "^ipaddress=" "ipaddress=$_middleware_ipaddress" middleware.properties
 }
+
 function build {
     echo "## Execute Kony Ant Build - Start ##"
     export PATH=$PATH:${_ant_bin_dir}
@@ -158,26 +169,26 @@ function build {
     echo ''
 }
 
-#function postBuildAndroid {
-#    if [[ ${_target_android_phone} == "true" -o  ${_target_android_tablet} == "true" ]]; then
-#        set +x
-#        echo "## Execute Android signing APK - Start ##"
-#        cd binaries/android
-#
-#        if [[ ! -z ${_android_storepass} && ${_android_storepass} != "" &&
-#            ! -z ${_android_keyalias} && ${_android_keyalias} != "" &&
-#            ! -z ${_android_keypass} && ${_android_keypass} != "" &&
-#            ! -z ${_android_keystore} && ${_android_keystore} != "" && ]]; then
-#
-#                jarsigner -storepass "${_android_storepass}" -keypass "${_android_keypass}" -keystore ../../${_android_keystore} luavmandroid.apk ${_android_keyalias} -signedjar luavmandroid-signed_unaligned.apk
-#                ${_android_zipalign} -v 4 luavmandroid-signed_unaligned.apk luavmandroid-signed.apk
-#        fi
-#        cd -
-#        echo "## Execute Android signing APK - Done ##"
-#        echo ''
-#    fi
-#
-#}
+function postBuildAndroid {
+    if [[ ${_target_android_phone} == "true" -o  ${_target_android_tablet} == "true" ]]; then
+        set +x
+        echo "## Execute Android signing APK - Start ##"
+        cd binaries/android
+
+        if [[ ! -z ${_android_storepass} && ${_android_storepass} != "" &&
+            ! -z ${_android_keyalias} && ${_android_keyalias} != "" &&
+            ! -z ${_android_keypass} && ${_android_keypass} != "" &&
+            ! -z ${_android_keystore} && ${_android_keystore} != "" && ]]; then
+
+                jarsigner -storepass "${_android_storepass}" -keypass "${_android_keypass}" -keystore ../../${_android_keystore} luavmandroid.apk ${_android_keyalias} -signedjar luavmandroid-signed_unaligned.apk
+                ${_android_zipalign} -v 4 luavmandroid-signed_unaligned.apk luavmandroid-signed.apk
+        fi
+        cd -
+        echo "## Execute Android signing APK - Done ##"
+        echo ''
+    fi
+
+}
 
 function postBuildIOS {
     function generateIPA {
@@ -299,6 +310,8 @@ dumpVars
 checkVars
 cleanUp
 extractTemplateJAR
+backUpFiles
 injectingProperties
 build
 postBuildIOS
+restoreFiles
