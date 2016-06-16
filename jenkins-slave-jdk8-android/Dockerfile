@@ -15,6 +15,4 @@ ENV ANDROID_HOME /usr/local/android-sdk-linux
 ENV ANDROID_SDK /usr/local/android-sdk-linux
 ENV PATH ${ANDROID_HOME}/tools:$ANDROID_HOME/platform-tools:$PATH
 
-RUN echo "y" | android update sdk --no-ui --all --filter platform-tools,build-tools-24
-RUN echo "y" | android update sdk --no-ui --all --filter android-24
-RUN echo "y" | android update sdk --no-ui --all --filter extra-android-m2repository,extra-google-m2repository,extra-google-google_play_services,extra-android-support
+RUN echo y | android update sdk --no-ui --all
