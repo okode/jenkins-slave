@@ -114,6 +114,7 @@ function cleanUp {
 
     rm -fr ${_workspace}/.build.properties.bak
     rm -fr ${_workspace}/.global.properties.bak
+    rm -fr ${_workspace}/.run.sh.bak
 
     echo -e "[OK]"
 }
@@ -197,11 +198,13 @@ function extractTemplateJAR {
 function backUpFiles {
     cp ${_workspace}/build.properties ${_workspace}/.build.properties.bak
     cp ${_workspace}/global.properties ${_workspace}/.global.properties.bak
+    cp ${_workspace}/run.sh ${_workspace}/.run.sh.bak
 }
 
 function restoreFiles {
     mv ${_workspace}/.build.properties.bak ${_workspace}/build.properties
     mv ${_workspace}/.global.properties.bak ${_workspace}/global.properties
+    mv ${_workspace}/.run.sh.bak ${_workspace}/run.sh
 }
 
 function injectingProperties {
@@ -215,6 +218,10 @@ function injectingProperties {
 
     change_line "^android.home=" "android.home=${_android_sdk}" ${_workspace}/global.properties
     change_line "^eclipse.equinox.path=" "eclipse.equinox.path=${_eclipse_equinox}" ${_workspace}/global.properties
+
+    sed 's/\($[1-4]\)/\"\1\"/g' run.sh > ${_tmp}/run.sh
+
+    mv ${_tmp}/run.sh run.sh
 
     #change_line "^httpport=" "httpport=$_middleware_httpport" middleware.properties
     #change_line "^httpsport=" "httpsport=$_middleware_httpsport" middleware.properties
