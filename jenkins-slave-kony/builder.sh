@@ -33,9 +33,13 @@ function parseArguments {
                 _ant_bin="$2"
                 shift # past argument
                 ;;
-            -w|--workspace)
-                _workspace="$2"
+            --projectPath)
+                _project_path="$2"
                 shift # past argument
+                ;;
+            -w|--workspace)
+                _workspace_path="$2"
+                shift
                 ;;
             --template)
                 _template_project="$2"
@@ -84,7 +88,7 @@ function dumpVars {
     echo -e ""
     echo -e "Paths:"
     echo -e "Temporal path: ${_tmp}"
-    echo -e "Workspace path: ${_workspace}"
+    echo -e "Workspace path: ${_workspace_path}"
     echo -e "Eclipse equinox path: ${_eclipse_equinox}"
     echo -e "Template project path: ${_template_project}"
     echo -e "Android SDK path: ${_android_sdk}"
@@ -112,9 +116,9 @@ function cleanUp {
 
     echo -ne "#> Cleaning temporal properties files"
 
-    rm -fr ${_workspace}/.build.properties.bak
-    rm -fr ${_workspace}/.global.properties.bak
-    rm -fr ${_workspace}/.run.sh.bak
+    rm -fr ${_project_path}/.build.properties.bak
+    rm -fr ${_project_path}/.global.properties.bak
+    rm -fr ${_project_path}/.run.sh.bak
 
     echo -e "[OK]"
 }
@@ -125,7 +129,12 @@ function checkVars {
         exit 1
     fi
 
-    if [[ -z ${_workspace} ]];then
+    if [[ -z ${_project_path} ]];then
+        echo -e "[ERROR]: Workspace folder is not defined. Use -w|--projectPath /path/to/w/folder to add it"
+        exit 1
+    fi
+
+    if [[ -z ${_workspace_path} ]];then
         echo -e "[ERROR]: Workspace folder is not defined. Use -w|--workspace /path/to/w/folder to add it"
         exit 1
     fi
@@ -196,31 +205,36 @@ function extractTemplateJAR {
 }
 
 function backUpFiles {
-    cp ${_workspace}/build.properties ${_workspace}/.build.properties.bak
-    cp ${_workspace}/global.properties ${_workspace}/.global.properties.bak
-    cp ${_workspace}/run.sh ${_workspace}/.run.sh.bak
+    cp ${_project_path}/build.properties ${_project_path}/.build.properties.bak
+    cp ${_project_path}/global.properties ${_project_path}/.global.properties.bak
+    cp ${_project_path}/run.sh ${_project_path}/.run.sh.bak
 }
 
 function restoreFiles {
-    mv ${_workspace}/.build.properties.bak ${_workspace}/build.properties
-    mv ${_workspace}/.global.properties.bak ${_workspace}/global.properties
-    mv ${_workspace}/.run.sh.bak ${_workspace}/run.sh
+    mv ${_project_path}/.build.properties.bak ${_project_path}/build.properties
+    mv ${_project_path}/.global.properties.bak ${_project_path}/global.properties
+    mv ${_project_path}/.run.sh.bak ${_project_path}/run.sh
 }
 
 function injectingProperties {
     #TODO: If *.properties files values are already assigned this will fail.
     echo "# injecting properties"
 
-    change_line "^android=" "android=${_target_android_phone}" ${_workspace}/build.properties
-    change_line "^androidtablet=" "androidtablet=${_target_android_tablet}" ${_workspace}/build.properties
-    change_line "^iphone=" "iphone=${_target_ios_phone}" ${_workspace}/build.properties
-    change_line "^ipad=" "ipad=${_target_ios_tablet}" ${_workspace}/build.properties
+    change_line "^android=" "android=${_target_android_phone}" ${_project_path}/build.properties
+    change_line "^androidtablet=" "androidtablet=${_target_android_tablet}" ${_project_path}/build.properties
+    change_line "^iphone=" "iphone=${_target_ios_phone}" ${_project_path}/build.properties
+    change_line "^ipad=" "ipad=${_target_ios_tablet}" ${_project_path}/build.properties
 
-    change_line "^android.home=" "android.home=${_android_sdk}" ${_workspace}/global.properties
-    change_line "^eclipse.equinox.path=" "eclipse.equinox.path=${_eclipse_equinox}" ${_workspace}/global.properties
+    change_line "^android.home=" "android.home=${_android_sdk}" ${_project_path}/global.properties
+    change_line "^eclipse.equinox.path=" "eclipse.equinox.path=${_eclipse_equinox}" ${_project_path}/global.properties
 
-    sed -i -e 's/\($[1-4]\)/\"\1\"/g' -e 's/ /\\ /g' -e 's/-/\-/g' run.sh > ${_tmp}/run.sh
-    mv ${_tmp}/run.sh run.sh
+    _build_properties_path=$(echo "$(pwd)/build.properties" | sed 's/ /\\ /g; s/-/\-/g')
+    _global_properties_path=$(echo "$(pwd)/global.properties" | sed 's/ /\\ /g; s/-/\-/g')
+
+    echo -e "#!/bin/bash" > run.sh
+    echo -e "java -XstartOnFirstThread -Dfile.encoding=UTF-8 -Dinput.file=${_build_properties_path} -Dglobal.file=${_global_properties_path} -cp ${_eclipse_equinox} org.eclipse.core.launcher.Main -data ${_workspace_path} -application com.pat.tool.keditor.konyapplication" >> run.sh
+
+    chmod u+x run.sh
 
     #change_line "^httpport=" "httpport=$_middleware_httpport" middleware.properties
     #change_line "^httpsport=" "httpsport=$_middleware_httpsport" middleware.properties
