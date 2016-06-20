@@ -219,8 +219,7 @@ function injectingProperties {
     change_line "^android.home=" "android.home=${_android_sdk}" ${_workspace}/global.properties
     change_line "^eclipse.equinox.path=" "eclipse.equinox.path=${_eclipse_equinox}" ${_workspace}/global.properties
 
-    sed 's/\($[1-4]\)/\"\1\"/g' run.sh > ${_tmp}/run.sh
-
+    sed -i -e 's/\($[1-4]\)/\"\1\"/g' -e 's/ /\\ /g' -e 's/-/\-/g' run.sh > ${_tmp}/run.sh
     mv ${_tmp}/run.sh run.sh
 
     #change_line "^httpport=" "httpport=$_middleware_httpport" middleware.properties
