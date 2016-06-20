@@ -6,6 +6,57 @@ function loadDefaultVars {
     echo -e "[OK]"
 }
 
+function parseArguments {
+    while [[ $# > 1 ]]
+    do
+        key="$1"
+
+        case $key in
+            -t|--target)
+                target="$2"
+                setTargets ${target}
+                shift # past argument
+                ;;
+            --android-sdk)
+                _android_sdk="$2"
+                shift # past argument
+                ;;
+            --equinox)
+                _eclipse_equinox="$2"
+                shift
+                ;;
+            --zipalign)
+                _android_zipalign="$2"
+                shift # past argument
+                ;;
+            --ant)
+                _ant_bin="$2"
+                shift # past argument
+                ;;
+            -w|--workspace)
+                _workspace="$2"
+                shift # past argument
+                ;;
+            --template)
+                _template_project="$2"
+                shift
+                ;;
+            --tmp)
+                _tmp="$2"
+                shift
+                ;;
+            --name)
+                _project_name="$2"
+                shift
+                ;;
+            *)
+                # unknown option
+                ;;
+        esac
+        shift # past argument or value
+    done
+}
+
 function change_line {
     local OLD_LINE_PATTERN=$1; shift
     local NEW_LINE=$1; shift
@@ -23,6 +74,8 @@ function escape_slashes {
 function dumpVars {
 
     echo -e "\n\n####### DUMP #######"
+    echo -e "Project:"
+    echo -e "Project name : ${_project_name}"
     echo -e "Target:"
     echo -e "Android phone: ${_target_android_phone}"
     echo -e "Android tablet: ${_target_android_tablet}"
@@ -55,6 +108,13 @@ function cleanUp {
     echo -ne "#> Cleaning up temporal folder..."
     rm -fr ${_tmp} 2>/dev/null
     mkdir -p ${_tmp}
+    echo -e "[OK]"
+
+    echo -ne "#> Cleaning temporal properties files"
+
+    rm -fr ${_workspace}/.build.properties.bak
+    rm -fr ${_workspace}/.global.properties.bak
+
     echo -e "[OK]"
 }
 
@@ -134,6 +194,16 @@ function extractTemplateJAR {
     _template_project_zip=${_tmp}/template/iOS-GA*.zip
 }
 
+function backUpFiles {
+    cp ${_workspace}/build.properties ${_workspace}/.build.properties.bak
+    cp ${_workspace}/global.properties ${_workspace}/.global.properties.bak
+}
+
+function restoreFiles {
+    mv ${_workspace}/.build.properties.bak ${_workspace}/build.properties
+    mv ${_workspace}/.global.properties.bak ${_workspace}/global.properties
+}
+
 function injectingProperties {
     #TODO: If *.properties files values are already assigned this will fail.
     echo "# injecting properties"
@@ -150,6 +220,7 @@ function injectingProperties {
     #change_line "^httpsport=" "httpsport=$_middleware_httpsport" middleware.properties
     #change_line "^ipaddress=" "ipaddress=$_middleware_ipaddress" middleware.properties
 }
+
 function build {
     echo "## Execute Kony Ant Build - Start ##"
     export PATH=$PATH:${_ant_bin_dir}
@@ -158,26 +229,26 @@ function build {
     echo ''
 }
 
-#function postBuildAndroid {
-#    if [[ ${_target_android_phone} == "true" -o  ${_target_android_tablet} == "true" ]]; then
-#        set +x
-#        echo "## Execute Android signing APK - Start ##"
-#        cd binaries/android
-#
-#        if [[ ! -z ${_android_storepass} && ${_android_storepass} != "" &&
-#            ! -z ${_android_keyalias} && ${_android_keyalias} != "" &&
-#            ! -z ${_android_keypass} && ${_android_keypass} != "" &&
-#            ! -z ${_android_keystore} && ${_android_keystore} != "" && ]]; then
-#
-#                jarsigner -storepass "${_android_storepass}" -keypass "${_android_keypass}" -keystore ../../${_android_keystore} luavmandroid.apk ${_android_keyalias} -signedjar luavmandroid-signed_unaligned.apk
-#                ${_android_zipalign} -v 4 luavmandroid-signed_unaligned.apk luavmandroid-signed.apk
-#        fi
-#        cd -
-#        echo "## Execute Android signing APK - Done ##"
-#        echo ''
-#    fi
-#
-#}
+function postBuildAndroid {
+    if [[ ${_target_android_phone} == "true" || ${_target_android_tablet} == "true" ]]; then
+        set +x
+        echo "## Execute Android signing APK - Start ##"
+        cd binaries/android
+
+        if [[ ! -z ${_android_storepass} && ${_android_storepass} != "" &&
+            ! -z ${_android_keyalias} && ${_android_keyalias} != "" &&
+            ! -z ${_android_keypass} && ${_android_keypass} != "" &&
+            ! -z ${_android_keystore} && ${_android_keystore} != "" ]]; then
+
+                jarsigner -storepass "${_android_storepass}" -keypass "${_android_keypass}" -keystore ../../${_android_keystore} luavmandroid.apk ${_android_keyalias} -signedjar luavmandroid-signed_unaligned.apk
+                ${_android_zipalign} -v 4 luavmandroid-signed_unaligned.apk luavmandroid-signed.apk
+        fi
+        cd -
+        echo "## Execute Android signing APK - Done ##"
+        echo ''
+    fi
+
+}
 
 function postBuildIOS {
     function generateIPA {
@@ -226,53 +297,6 @@ function postBuildIOS {
     fi
 }
 
-function parseArguments {
-    while [[ $# > 1 ]]
-    do
-        key="$1"
-
-        case $key in
-            -t|--target)
-                TARGET="$2"
-                setTargets ${TARGET}
-                shift # past argument
-                ;;
-            --android-sdk)
-                _android_sdk="$2"
-                shift # past argument
-                ;;
-            --zipalign)
-                _android_zipalign="$2"
-                shift # past argument
-                ;;
-            --ant)
-                _ant_bin="$2"
-                shift # past argument
-                ;;
-            --workspace)
-                _workspace="$2"
-                shift # past argument
-                ;;
-            --ios-id)
-                _ios_code_sign_identity="$2"
-                shift
-                ;;
-            --ios-uuid)
-                _ios_provisioning_profile_uuid="$2"
-                shift
-                ;;
-            --ios-name)
-                _ios_provisioning_profile_name="$2"
-                shift
-                ;;
-            *)
-                # unknown option
-                ;;
-        esac
-        shift # past argument or value
-    done
-}
-
 function setTargets {
     case $1 in
         android)
@@ -299,6 +323,12 @@ dumpVars
 checkVars
 cleanUp
 extractTemplateJAR
+backUpFiles
 injectingProperties
 build
-postBuildIOS
+if [[ ${_target_ios_phone} == "true" || ${_target_ios_tablet} == "true" ]]; then
+    postBuildIOS
+elif [[ ${_target_android_phone} == "true" || ${_target_android_tablet} == "true" ]]; then
+    postBuildAndroid #TODO: Tablet and Android phone apk generation will colide. 
+fi
+restoreFiles
