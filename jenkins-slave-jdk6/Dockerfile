@@ -1,16 +1,30 @@
-# Docker Jenkins Slave Image for JDK6 builds
+# Docker Jenkins Slave Image for JDK8 builds
 
-FROM okode/jenkins-slave-jdk8:latest
+FROM java:6
 
 MAINTAINER Okode <support@okode.com>
 
-RUN apt-get -y update && \
-    echo oracle-java6-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-    apt-get -y -q install oracle-java6-installer && \
-    apt-get -y -q install oracle-java6-set-default
+ENV TERM linux
 
-# Use JDK8 *only* for running Jenkins agent. JDK6 remains as default Java for other processes.
-CMD /usr/lib/jvm/java-8-oracle/jre/bin/java -jar /jenkins/agent/slave.jar \
+RUN rm -rf /var/lib/apt/lists/*
+
+ADD https://archive.apache.org/dist/maven/binaries/apache-maven-3.0.5-bin.tar.gz /opt/
+RUN cd /opt && tar xf apache-maven-3.0.5-bin.tar.gz && rm apache-maven-3.0.5-bin.tar.gz && \
+    ln -s /opt/apache-maven-3.0.5/bin/mvn /usr/local/bin/ && \
+    ln -s /opt/apache-maven-3.0.5/bin/mvnDebug /usr/local/bin/ && \
+    ln -s /opt/apache-maven-3.0.5/bin/mvnyjp /usr/local/bin/
+
+RUN mkdir -p /jenkins/agent
+RUN mkdir -p /jenkins/workspace
+
+COPY resources/slave.jar /jenkins/agent/
+
+VOLUME /jenkins/workspace
+
+ENV JENKINS_JNLP_URL jenkinsJnlpUrlValue
+ENV JENKINS_SECRET jenkinsSecretValue
+
+CMD java -jar /jenkins/agent/slave.jar \
     -jnlpUrl ${JENKINS_JNLP_URL} \
     -secret ${JENKINS_SECRET} \
     -noCertificateCheck
