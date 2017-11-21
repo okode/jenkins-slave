@@ -12,4 +12,5 @@ RUN apt-get -y update && \
 # Use JDK8 *only* for running Jenkins agent. JDK6 remains as default Java for other processes.
 CMD /usr/lib/jvm/java-8-oracle/jre/bin/java -jar /jenkins/agent/slave.jar \
     -jnlpUrl ${JENKINS_JNLP_URL} \
-    -secret ${JENKINS_SECRET}
+    -secret ${JENKINS_SECRET} \
+    -noCertificateCheck

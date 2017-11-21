@@ -40,4 +40,5 @@ ENV JENKINS_SECRET jenkinsSecretValue
 
 CMD java -jar /jenkins/agent/slave.jar \
     -jnlpUrl ${JENKINS_JNLP_URL} \
-    -secret ${JENKINS_SECRET}
+    -secret ${JENKINS_SECRET} \
+    -noCertificateCheck
